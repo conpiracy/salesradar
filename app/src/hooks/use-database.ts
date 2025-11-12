@@ -1,102 +1,73 @@
-import { DatabaseContext } from '@/context/database';
-import { useContext } from 'react';
+import { useQuery as useConvexQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 import { Route } from '@/routes/__root';
-import { useQuery } from '@rocicorp/zero/react';
-import { Message, Thread } from '@/zero/types';
-import { UserId } from '@/database/types';
 import { useParamsThreadId } from '@/hooks/use-params-thread-id';
 
-export function useDatabase() {
-    const database = useContext(DatabaseContext);
-
-    if (!database) {
-        throw new Error('useZero must be used within a ZeroProvider');
-    }
-
-    return database;
-}
-
+// Settings hook using Convex
 export function useSettings() {
-    const db = useDatabase();
     const loaderData = Route.useLoaderData();
-    const [settings] = useQuery(
-        db.query.setting.where('userId', '=', db.userID).related('model').one()
-    );
+    const settings = useConvexQuery(api.settings.get);
 
-    return settings ?? loaderData.settings;
+    return settings ?? loaderData?.settings;
 }
 
+// Threads hook using Convex
 export function useThreads() {
-    const db = useDatabase();
     const loaderData = Route.useLoaderData();
-    const [threads, result] = useQuery(
-        db.query.thread
-            .where('userId', '=', db.userID)
-            .related('messages', q => q.orderBy('createdAt', 'desc'))
-            .orderBy('updatedAt', 'desc'),
-        {
-            ttl: 60 * 60 * 24,
-        }
-    );
+    const threads = useConvexQuery(api.threads.list);
 
-    return threads.length > 0 || result.type === 'complete'
-        ? threads
-        : ((
-              loaderData.threads?.map(thread => ({
-                  ...thread,
-                  createdAt: thread.createdAt.getTime(),
-                  updatedAt: thread.updatedAt.getTime(),
-              })) as Thread[]
-          )?.filter(thread => thread.userId === db.userID) ?? []);
+    return threads ?? loaderData?.threads ?? [];
 }
 
+// Customer hook using Convex (subscription data)
 export function useCustomer() {
-    const db = useDatabase();
     const loaderData = Route.useLoaderData();
-    const [customer] = useQuery(
-        db.query.userCustomer.where('userId', '=', UserId(db.userID)).one()
-    );
+    const customer = useConvexQuery(api.customers.get);
 
-    return customer ?? loaderData.customer;
+    return customer ?? loaderData?.customer;
 }
 
+// Usage hook using Convex (credits)
 export function useUsage() {
-    const db = useDatabase();
     const loaderData = Route.useLoaderData();
-    const [usage] = useQuery(db.query.usage.where('userId', '=', UserId(db.userID)).one());
+    const usage = useConvexQuery(api.usage.get);
 
-    return usage ?? loaderData.usage;
+    return usage ?? loaderData?.usage;
 }
 
+// Thread from params hook
 export function useThreadFromParams() {
     const threadId = useParamsThreadId();
-    const db = useDatabase();
     const loaderData = Route.useLoaderData();
 
-    const [thread] = useQuery(
-        db.query.thread
-            .where('id', '=', threadId ?? '')
-            .related('messages', q => q.orderBy('createdAt', 'asc'))
-            .one(),
-        {
-            ttl: 60 * 60 * 24,
-        }
+    // Convex doesn't have the exact same query pattern as Zero
+    // We'll need to fetch thread and messages separately or create a combined query
+    const thread = useConvexQuery(
+        api.threads.get,
+        threadId ? { id: threadId as any } : 'skip'
     );
 
-    return (
-        thread ??
-        (loaderData.thread && loaderData.thread.id === threadId
-            ? (loaderData.thread as unknown as Thread & {
-                  messages: Message[];
-              })
-            : undefined)
+    const messages = useConvexQuery(
+        api.messages.list,
+        threadId ? { threadId: threadId as any } : 'skip'
     );
+
+    if (thread && messages) {
+        return {
+            ...thread,
+            messages,
+        };
+    }
+
+    return (loaderData?.thread && loaderData.thread.id === threadId
+        ? loaderData.thread
+        : undefined) as any;
 }
 
+// User hook using Convex
 export function useUser() {
-    const db = useDatabase();
     const loaderData = Route.useLoaderData();
-    const [user] = useQuery(db.query.user.where('id', '=', UserId(db.userID)).one());
+    const user = useConvexQuery(api.users.getCurrent);
 
-    return user ?? loaderData.user;
+    return user ?? loaderData?.user;
 }

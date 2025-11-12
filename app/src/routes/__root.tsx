@@ -1,18 +1,20 @@
 import '@/global.css';
 import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router';
-import { DatabaseProvider } from '@/context/database';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/sonner';
 import { createServerFn } from '@tanstack/react-start';
 import { Session, SessionLive } from '@/lib/auth';
 import { getWebRequest } from '@tanstack/react-start/server';
 import { Clock, Effect } from 'effect';
-import * as queries from '@/database/queries';
 import { DatabaseLive } from '@/database/effect';
 import { useEffect, useRef } from 'react';
-import { useSettings } from '@/hooks/use-database';
 import { z } from 'zod';
 import { ProDialog } from '@/components/app/pro-dialog';
+import { ConvexProvider, ConvexReactClient } from 'convex/react';
+import { env } from '@/lib/env';
+import { useSettings } from '@/hooks/use-database';
+
+const convex = new ConvexReactClient(env.VITE_PUBLIC_CONVEX_URL);
 
 const GetContextSchema = z.object({
     threadId: z.string().optional(),
@@ -29,26 +31,13 @@ const getContext = createServerFn({ method: 'GET' })
                 return Effect.Do.pipe(
                     Effect.bind('now', () => Clock.currentTimeMillis),
                     Effect.bind('session', () => Session),
-                    Effect.bind('context', ({ session }) => queries.getSSRData(session.user.id)),
-                    Effect.bind('thread', ({ session }) => {
-                        if (data.threadId) {
-                            return queries.getThreadByIdAndUserId(data.threadId, session.user.id);
-                        }
-                        return Effect.succeed(null);
-                    }),
                     Effect.bind('end', () => Clock.currentTimeMillis),
                     Effect.tap(({ now, end }) => Effect.log(`SSR Duration: ${end - now}ms`)),
                     Effect.provide(SessionLive(request))
                 );
             }),
-            Effect.map(({ context, session, thread }) => ({
+            Effect.map(({ session }) => ({
                 session,
-                thread,
-                settings: context.results[0],
-                customer: context.results[1],
-                usage: context.results[2],
-                user: context.results[3],
-                threads: context.results[4],
             })),
             Effect.provide(DatabaseLive),
             Effect.catchAll(_ => Effect.succeed(undefined))
@@ -65,13 +54,7 @@ export const Route = createRootRoute({
         });
 
         return {
-            settings: context?.settings,
             session: context?.session,
-            threads: context?.threads,
-            customer: context?.customer,
-            usage: context?.usage,
-            user: context?.user,
-            thread: context?.thread,
         };
     },
     head: ctx => ({
@@ -84,7 +67,7 @@ export const Route = createRootRoute({
                 content: 'width=device-width, initial-scale=1',
             },
             {
-                title: ctx?.loaderData?.thread?.title ?? 'Zeron',
+                title: 'SalesRadar',
             },
             {
                 name: 'description',
@@ -151,18 +134,15 @@ function RootDocument() {
         <html
             lang="en"
             ref={ref}
-            className={cn(
-                loaderData?.settings?.mode ?? 'dark',
-                loaderData?.settings?.theme ?? 'default'
-            )}
+            className="dark default"
         >
             <head>
                 <HeadContent />
             </head>
             <body className="fixed inset-0">
-                <DatabaseProvider>
+                <ConvexProvider client={convex}>
                     <RootComponent htmlRef={ref} />
-                </DatabaseProvider>
+                </ConvexProvider>
                 <Scripts />
             </body>
         </html>
