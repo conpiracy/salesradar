@@ -7,6 +7,13 @@ export default function Home() {
       </p>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div className="border rounded-lg p-6 hover:shadow-lg transition-shadow">
+          <h2 className="text-2xl font-semibold mb-2">Dashboard</h2>
+          <p className="mb-4">View your beautiful CRM dashboard with analytics.</p>
+          <a href="/dashboard" className="text-blue-600 hover:underline">
+            View Dashboard →
+          </a>
+        </div>
+        <div className="border rounded-lg p-6 hover:shadow-lg transition-shadow">
           <h2 className="text-2xl font-semibold mb-2">Get Started</h2>
           <p className="mb-4">Create your seller account and get your admin key.</p>
           <a href="/start" className="text-blue-600 hover:underline">
@@ -39,13 +46,6 @@ export default function Home() {
           <p className="mb-4">See top performers ranked by activity.</p>
           <a href="/leaderboard" className="text-blue-600 hover:underline">
             View Leaderboard →
-          </a>
-        </div>
-        <div className="border rounded-lg p-6 hover:shadow-lg transition-shadow">
-          <h2 className="text-2xl font-semibold mb-2">My Profile</h2>
-          <p className="mb-4">Update your profile and track progress.</p>
-          <a href="/me" className="text-blue-600 hover:underline">
-            Go to Profile →
           </a>
         </div>
       </div>

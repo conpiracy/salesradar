@@ -19,6 +19,7 @@ export default function RootLayout({
           <nav className="bg-gray-800 text-white p-4">
             <div className="container mx-auto flex gap-6">
               <a href="/" className="hover:underline font-bold">SalesRadar</a>
+              <a href="/dashboard" className="hover:underline">Dashboard</a>
               <a href="/start" className="hover:underline">Start</a>
               <a href="/me" className="hover:underline">My Profile</a>
               <a href="/lessons" className="hover:underline">Lessons</a>
