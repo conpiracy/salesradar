@@ -1,0 +1,32 @@
+[
+  {
+    "slug": "intro-to-sales",
+    "title": "Introduction to Sales Fundamentals",
+    "order": 1,
+    "content": "Learn the basic principles of sales, including understanding customer needs, building rapport, and the importance of active listening. This foundational lesson will set you up for success in your sales journey."
+  },
+  {
+    "slug": "prospecting-strategies",
+    "title": "Effective Prospecting Strategies",
+    "order": 2,
+    "content": "Discover proven methods for identifying and reaching out to potential customers. Learn how to use social media, networking events, and cold outreach to build your pipeline of opportunities."
+  },
+  {
+    "slug": "handling-objections",
+    "title": "Handling Objections with Confidence",
+    "order": 3,
+    "content": "Master the art of addressing customer concerns and objections. Learn frameworks for turning 'no' into 'yes' by understanding the root causes of hesitation and providing compelling solutions."
+  },
+  {
+    "slug": "closing-techniques",
+    "title": "Proven Closing Techniques",
+    "order": 4,
+    "content": "Explore various closing strategies that help you seal the deal. From assumptive closes to creating urgency, learn when and how to use different techniques for maximum effectiveness."
+  },
+  {
+    "slug": "relationship-building",
+    "title": "Building Long-term Customer Relationships",
+    "order": 5,
+    "content": "Understand that sales doesn't end at the close. Learn how to nurture customer relationships, drive repeat business, and generate referrals through exceptional service and ongoing engagement."
+  }
+]

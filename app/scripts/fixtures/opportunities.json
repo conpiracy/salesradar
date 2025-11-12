@@ -1,0 +1,142 @@
+[
+  {
+    "source": "LinkedIn Jobs",
+    "url": "https://example.com/job/sales-rep-saas-1",
+    "title": "Senior SaaS Sales Representative - Remote",
+    "postedAt": 1699564800000,
+    "meta": { "location": "Remote", "type": "Full-time" }
+  },
+  {
+    "source": "LinkedIn Jobs",
+    "url": "https://example.com/job/account-exec-2",
+    "title": "Account Executive - Cloud Solutions",
+    "postedAt": 1699478400000,
+    "meta": { "location": "Remote", "type": "Full-time" }
+  },
+  {
+    "source": "Indeed",
+    "url": "https://example.com/job/bdr-tech-3",
+    "title": "Business Development Representative - Tech Startup",
+    "postedAt": 1699392000000,
+    "meta": { "location": "San Francisco, CA", "type": "Full-time" }
+  },
+  {
+    "source": "Indeed",
+    "url": "https://example.com/job/sales-manager-4",
+    "title": "Sales Manager - E-commerce Platform",
+    "postedAt": 1699305600000,
+    "meta": { "location": "New York, NY", "type": "Full-time" }
+  },
+  {
+    "source": "LinkedIn Jobs",
+    "url": "https://example.com/job/enterprise-sales-5",
+    "title": "Enterprise Sales Executive - Cybersecurity",
+    "postedAt": 1699219200000,
+    "meta": { "location": "Remote", "type": "Full-time" }
+  },
+  {
+    "source": "Indeed",
+    "url": "https://example.com/job/inside-sales-6",
+    "title": "Inside Sales Representative - Marketing Software",
+    "postedAt": 1699132800000,
+    "meta": { "location": "Austin, TX", "type": "Full-time" }
+  },
+  {
+    "source": "LinkedIn Jobs",
+    "url": "https://example.com/job/channel-partner-7",
+    "title": "Channel Partner Manager - Cloud Infrastructure",
+    "postedAt": 1699046400000,
+    "meta": { "location": "Remote", "type": "Full-time" }
+  },
+  {
+    "source": "Indeed",
+    "url": "https://example.com/job/sales-engineer-8",
+    "title": "Sales Engineer - AI & Machine Learning",
+    "postedAt": 1698960000000,
+    "meta": { "location": "Seattle, WA", "type": "Full-time" }
+  },
+  {
+    "source": "LinkedIn Jobs",
+    "url": "https://example.com/job/regional-director-9",
+    "title": "Regional Sales Director - Healthcare Tech",
+    "postedAt": 1698873600000,
+    "meta": { "location": "Boston, MA", "type": "Full-time" }
+  },
+  {
+    "source": "Indeed",
+    "url": "https://example.com/job/smb-sales-10",
+    "title": "SMB Account Executive - Productivity Tools",
+    "postedAt": 1698787200000,
+    "meta": { "location": "Remote", "type": "Full-time" }
+  },
+  {
+    "source": "LinkedIn Jobs",
+    "url": "https://example.com/job/sales-ops-11",
+    "title": "Sales Operations Specialist - Fintech",
+    "postedAt": 1698700800000,
+    "meta": { "location": "Chicago, IL", "type": "Full-time" }
+  },
+  {
+    "source": "Indeed",
+    "url": "https://example.com/job/partner-success-12",
+    "title": "Partner Success Manager - Integration Platform",
+    "postedAt": 1698614400000,
+    "meta": { "location": "Remote", "type": "Full-time" }
+  },
+  {
+    "source": "LinkedIn Jobs",
+    "url": "https://example.com/job/strategic-accounts-13",
+    "title": "Strategic Account Manager - EdTech",
+    "postedAt": 1698528000000,
+    "meta": { "location": "Denver, CO", "type": "Full-time" }
+  },
+  {
+    "source": "Indeed",
+    "url": "https://example.com/job/outbound-sdr-14",
+    "title": "Outbound SDR - Data Analytics Platform",
+    "postedAt": 1698441600000,
+    "meta": { "location": "Remote", "type": "Full-time" }
+  },
+  {
+    "source": "LinkedIn Jobs",
+    "url": "https://example.com/job/customer-success-15",
+    "title": "Customer Success Manager - SaaS Growth",
+    "postedAt": 1698355200000,
+    "meta": { "location": "Portland, OR", "type": "Full-time" }
+  },
+  {
+    "source": "Indeed",
+    "url": "https://example.com/job/revenue-ops-16",
+    "title": "Revenue Operations Analyst - B2B Software",
+    "postedAt": 1698268800000,
+    "meta": { "location": "Remote", "type": "Full-time" }
+  },
+  {
+    "source": "LinkedIn Jobs",
+    "url": "https://example.com/job/solution-consultant-17",
+    "title": "Solution Consultant - Enterprise CRM",
+    "postedAt": 1698182400000,
+    "meta": { "location": "Atlanta, GA", "type": "Full-time" }
+  },
+  {
+    "source": "Indeed",
+    "url": "https://example.com/job/field-sales-18",
+    "title": "Field Sales Representative - IoT Solutions",
+    "postedAt": 1698096000000,
+    "meta": { "location": "Dallas, TX", "type": "Full-time" }
+  },
+  {
+    "source": "LinkedIn Jobs",
+    "url": "https://example.com/job/vp-sales-19",
+    "title": "VP of Sales - Fast-growing SaaS Startup",
+    "postedAt": 1698009600000,
+    "meta": { "location": "Remote", "type": "Full-time" }
+  },
+  {
+    "source": "Indeed",
+    "url": "https://example.com/job/channel-sales-20",
+    "title": "Channel Sales Manager - DevOps Tools",
+    "postedAt": 1697923200000,
+    "meta": { "location": "Remote", "type": "Full-time" }
+  }
+]
