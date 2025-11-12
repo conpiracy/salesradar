@@ -1,0 +1,7 @@
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@rocicorp/zero-sqlite3'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - msgpackr-extract
+  - protobufjs
