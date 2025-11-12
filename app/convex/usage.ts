@@ -172,3 +172,64 @@ export const deductResearch = mutation({
     return usage.research - 1;
   },
 });
+
+// ========== SERVER-SIDE FUNCTIONS (for API routes) ==========
+
+// Deduct credits by user ID (server-side)
+export const deductCreditsByUserId = mutation({
+  args: {
+    userId: v.id("users"),
+    amount: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const usage = await ctx.db
+      .query("usage")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .first();
+
+    if (!usage) {
+      throw new Error("Usage record not found");
+    }
+
+    if (usage.credits < args.amount) {
+      throw new Error("Insufficient credits");
+    }
+
+    await ctx.db.patch(usage._id, {
+      credits: usage.credits - args.amount,
+    });
+
+    return usage.credits - args.amount;
+  },
+});
+
+// Add credits by user ID (server-side)
+export const addCreditsByUserId = mutation({
+  args: {
+    userId: v.id("users"),
+    amount: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const usage = await ctx.db
+      .query("usage")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .first();
+
+    if (!usage) {
+      // Create usage record if doesn't exist
+      await ctx.db.insert("usage", {
+        userId: args.userId,
+        credits: args.amount,
+        search: 10,
+        research: 5,
+      });
+      return args.amount;
+    }
+
+    await ctx.db.patch(usage._id, {
+      credits: usage.credits + args.amount,
+    });
+
+    return usage.credits + args.amount;
+  },
+});

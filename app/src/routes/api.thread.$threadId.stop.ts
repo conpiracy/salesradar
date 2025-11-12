@@ -1,98 +1,55 @@
 import { createServerFileRoute } from '@tanstack/react-start/server';
-import { Effect, Layer } from 'effect';
-import { SessionLive, Session } from '@/lib/auth';
-import { DatabaseLive } from '@/database/effect';
-import { APIError } from '@/lib/error';
-import { z } from 'zod';
-import { nanoid } from 'nanoid';
-import { RedisLive } from '@/lib/redis';
-import * as queries from '@/database/queries';
-import { RedisPubSub } from 'effect-redis';
+import { auth } from '@/lib/auth';
+import { convexClient } from '@/lib/convex-client';
+import { api } from '../../convex/_generated/api';
+import { Id } from '../../convex/_generated/dataModel';
 
 export const ServerRoute = createServerFileRoute('/api/thread/$threadId/stop').methods({
     async POST({ request, params }) {
-        return threadStopPostApi.pipe(
-            Effect.scoped,
-            APIError.map({
-                status: 500,
-                message: 'Uncaught error',
-            }),
-            Effect.catchAll(e => e.response),
-            Effect.provide(SessionLive(request)),
-            Effect.provide(ThreadStopPostParamsLive({ id: params.threadId })),
-            Effect.provide(DatabaseLive),
-            Effect.provide(RedisLive),
-            Effect.runPromise
-        );
+        try {
+            // Get session
+            const session = await auth.api.getSession({
+                headers: request.headers,
+            });
+
+            if (!session) {
+                return new Response('Unauthorized', { status: 401 });
+            }
+
+            const threadId = params.threadId as Id<'threads'>;
+
+            // Get thread to verify ownership
+            const thread = await convexClient.query(api.queries.getThreadById, {
+                threadId,
+            });
+
+            if (!thread) {
+                return new Response('Thread not found', { status: 404 });
+            }
+
+            if (thread.userId !== session.user.id) {
+                return new Response('You are not allowed to modify this thread', {
+                    status: 403,
+                });
+            }
+
+            // Update thread status to ready (stop streaming)
+            await convexClient.mutation(api.queries.updateThreadStatus, {
+                threadId,
+                status: 'ready',
+                streamId: undefined,
+            });
+
+            // Note: Redis pub/sub for abort has been removed
+            // The AbortController in the main thread route will handle cancellation
+            // when the client disconnects or the stream completes
+
+            return new Response(null, { status: 200 });
+        } catch (error: any) {
+            console.error('[API] Error stopping thread', error);
+            return new Response(error.message || 'Internal server error', {
+                status: error.status || 500,
+            });
+        }
     },
 });
-
-const threadStopPostApi = Effect.gen(function* () {
-    const session = yield* Session;
-    const params = yield* ThreadStopPostParams;
-
-    return yield* threadStopPostApiHandler.pipe(
-        Effect.annotateLogs('requestId', nanoid()),
-        Effect.annotateLogs('userId', session.user.id),
-        Effect.annotateLogs('threadId', params.id)
-    );
-});
-
-const threadStopPostApiHandler = Effect.gen(function* () {
-    const session = yield* Session;
-    const params = yield* ThreadStopPostParams;
-
-    const thread = yield* queries.getThreadById(params.id);
-
-    if (!thread) {
-        console.log('thread not found');
-        return yield* new APIError({
-            status: 404,
-            message: 'Thread not found',
-        });
-    }
-
-    if (thread.userId !== session.user.id) {
-        return yield* new APIError({
-            status: 403,
-            message: 'You are not allowed to modify this thread',
-        });
-    }
-
-    const pubsub = yield* RedisPubSub;
-
-    yield* pubsub.publish(`abort:${params.id}`, 'abort');
-
-    yield* queries.updateThread({
-        threadId: params.id,
-        status: 'ready',
-    });
-
-    return new Response(null, { status: 200 });
-});
-
-const ThreadStopPostApiSchema = z.object({
-    id: z.string(),
-});
-
-class ThreadStopPostParams extends Effect.Tag('ThreadStopPostParams')<
-    ThreadStopPostParams,
-    z.infer<typeof ThreadStopPostApiSchema>
->() {}
-
-const ThreadStopPostParamsLive = (params: z.infer<typeof ThreadStopPostApiSchema>) =>
-    Layer.scoped(
-        ThreadStopPostParams,
-        Effect.gen(function* () {
-            return yield* Effect.try({
-                try: () => ThreadStopPostApiSchema.parse(params),
-                catch: error => {
-                    return new APIError({
-                        status: 400,
-                        message: 'Invalid request params',
-                        cause: error,
-                    });
-                },
-            });
-        })
-    );
