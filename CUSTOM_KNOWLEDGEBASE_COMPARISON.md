@@ -4,7 +4,9 @@
 
 This document compares **Mem0.ai** vs **HelixDB** for implementing a custom knowledgebase in the Zeron (SalesRadar) AI chat system.
 
-**Quick Recommendation**: For most use cases, **Mem0** is recommended as it provides a complete memory layer with minimal setup. Choose **HelixDB** if you need advanced graph relationships and want a unified database solution.
+**Quick Recommendation**: For most use cases, **Mem0** is recommended as it provides a complete memory layer with minimal setup. Choose **HelixDB** if you need advanced graph relationships and knowledge graphs.
+
+**IMPORTANT**: Both solutions integrate **alongside** your existing Convex stack via API calls - no migration needed! Convex continues to handle your core data (sellers, lessons, opportunities) while Mem0/HelixDB adds AI memory and knowledgebase capabilities.
 
 ---
 
@@ -17,6 +19,43 @@ This document compares **Mem0.ai** vs **HelixDB** for implementing a custom know
 - Conversation storage schema
 - Message history management
 - Custom knowledgebase/memory system ← This document focuses here
+
+---
+
+## Integration Approach
+
+**Both Mem0 and HelixDB integrate via API calls - Convex stays as-is!**
+
+```
+Your Current Stack (UNCHANGED):
+┌─────────────────────────────┐
+│  Next.js 15 (Frontend)      │
+│  + Convex (Backend/DB)      │
+│  ↓                           │
+│  sellers, lessons, opps     │ ← Your existing data stays here
+└─────────────────────────────┘
+
+Add Knowledgebase (NEW):
+┌─────────────────────────────┐
+│  API Calls from:            │
+│  - Next.js Server Actions   │ ← Call Mem0/HelixDB APIs from here
+│  - Convex Actions           │ ← Or from here
+│  ↓                           │
+│  Mem0 API or HelixDB API    │ ← Memory/knowledgebase lives here
+└─────────────────────────────┘
+```
+
+**How it works**:
+1. **Keep Convex** for all existing data (sellers, lessons, opportunities)
+2. **Add Mem0 or HelixDB** as an additional API service for AI memory/knowledgebase
+3. **Call their APIs** from Next.js Server Actions or Convex actions
+4. **No migration needed** - just API integration
+
+**Where to make API calls**:
+- **Option A**: Next.js Server Actions (`app/actions/chat.ts`) - Simple, direct
+- **Option B**: Convex Actions (`convex/chat.ts`) - If you want Convex to orchestrate
+
+Both work! Choose based on where you want your LLM logic to live.
 
 ---
 
@@ -296,13 +335,15 @@ export default function ChatPage() {
 
 ### Scenario 2: Advanced RAG with Knowledge Graph
 
-**Use HelixDB**
+**Use HelixDB (Alongside Convex)**
 
 **Rationale**:
 - Need to model relationships between sellers, opportunities, lessons, and completions
 - Want semantic search combined with graph traversal
 - Building complex recommendation engine
-- Want single database for everything
+- HelixDB handles knowledgebase/RAG, Convex keeps your existing data
+
+**Note**: You can optionally sync data from Convex to HelixDB, OR just use HelixDB as a separate knowledgebase API. Both approaches work - integrate via REST API or Python SDK from Next.js Server Actions or Convex actions.
 
 **Implementation Steps**:
 
@@ -648,6 +689,81 @@ result = db.query("""
   LIMIT 5
 """, {'seller_id': 'seller_123'})
 ```
+
+### Calling from Convex Actions
+
+Both Mem0 and HelixDB can be called from Convex actions using `fetch`:
+
+```typescript
+// convex/chat.ts
+import { action } from "./_generated/server";
+import { v } from "convex/values";
+
+// Example: Call Mem0 from Convex action
+export const chatWithMemory = action({
+  args: { sellerId: v.string(), message: v.string() },
+  handler: async (ctx, args) => {
+    // 1. Get seller data from Convex
+    const seller = await ctx.runQuery(api.sellers.publicSeller, {
+      sellerId: args.sellerId
+    });
+
+    // 2. Call Mem0 API to get user memories
+    const memoryResponse = await fetch('https://api.mem0.ai/v1/memories/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.MEM0_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        query: args.message,
+        user_id: args.sellerId
+      })
+    });
+    const memories = await memoryResponse.json();
+
+    // 3. Or call HelixDB REST API
+    const helixResponse = await fetch('http://localhost:6969/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `
+          MATCH (s:Seller {id: $seller_id})-[:COMPLETED]->(l:Lesson)
+          RETURN l.title
+        `,
+        params: { seller_id: args.sellerId }
+      })
+    });
+    const knowledge = await helixResponse.json();
+
+    // 4. Combine Convex data + Mem0/HelixDB knowledge + call LLM
+    const context = `
+      Seller: ${seller.handle}
+      Memories: ${JSON.stringify(memories)}
+      Knowledge: ${JSON.stringify(knowledge)}
+    `;
+
+    // 5. Call Claude/OpenAI with combined context
+    const llmResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: context + '\n\n' + args.message }]
+      })
+    });
+
+    return await llmResponse.json();
+  }
+});
+```
+
+**Key Point**: Convex actions can call external APIs (Mem0, HelixDB, Claude, etc.) while Convex mutations/queries handle your Convex database. This keeps your stack clean and leverages the strengths of each service.
 
 ---
 
